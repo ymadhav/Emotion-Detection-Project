@@ -79,7 +79,7 @@ with st.sidebar:
     st.write("**Dataset:** GoEmotions")
     st.write("**Frameworks:** Transformers, PyTorch, Streamlit")
     st.divider()
-    st.write("Developed by: [Your Name]")
+    st.write("Developed by: [Sudhanshu]")
 
 # 5. Main Layout
 col1, col2 = st.columns([1, 1], gap="large")
