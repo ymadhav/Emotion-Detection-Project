@@ -1,27 +1,49 @@
 import streamlit as st
 import torch
 import os
+import urllib.request
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-# Set up page config
+# 1. Page Config
 st.set_page_config(page_title="Emotion AI Demo", page_icon="🤖")
-
 st.title("🎭 Multi-Label Emotion Detection")
-st.markdown("Developed as part of my **B.Sc. AI & ML Research Project**. This AI can detect 28 different emotions in text.")
+st.markdown("Developed as part of my **B.Sc. AI & ML Research Project**.")
 
-# Path to your model
+# 2. Define where to save the model on the Streamlit server
+SAVE_DIR = "model_files"
+if not os.path.exists(SAVE_DIR):
+    os.makedirs(SAVE_DIR)
 
-model_path = os.path.join(os.path.dirname(__file__), "EmotionDetection", "real_model")
+# 3. Use your Release links
+# Replace these with the actual "Copy Link Address" from your GitHub Release page
+MODEL_URL = "https://github.com/heera9721/Emotion-Detection-Project/releases/download/v1.0/model.safetensors"
+CONFIG_URL = "https://github.com/heera9721/Emotion-Detection-Project/releases/download/v1.0/config.json"
 
-@st.cache_resource # This keeps the model in memory so it doesn't reload every time
+@st.cache_resource
 def load_model():
+    model_file = os.path.join(SAVE_DIR, "model.safetensors")
+    config_file = os.path.join(SAVE_DIR, "config.json")
+
+    # Download if not present
+    if not os.path.exists(model_file):
+        with st.spinner("Downloading AI Model from GitHub Releases... This only happens once."):
+            urllib.request.urlretrieve(MODEL_URL, model_file)
+            urllib.request.urlretrieve(CONFIG_URL, config_file)
+
     tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
-    model = AutoModelForSequenceClassification.from_pretrained(model_path)
+    # Load from the local folder we just created
+    model = AutoModelForSequenceClassification.from_pretrained(SAVE_DIR)
+    model.to("cpu")
     return tokenizer, model
 
-tokenizer, model = load_model()
+# Trigger loading
+try:
+    tokenizer, model = load_model()
+except Exception as e:
+    st.error(f"Model failed to load. Error: {e}")
+    st.stop()
 
-# Emotion labels
+# 4. Emotion labels
 emotions = [
     "admiration", "amusement", "anger", "annoyance", "approval", "caring", 
     "confusion", "curiosity", "desire", "disappointment", "disapproval", 
@@ -38,15 +60,13 @@ if st.button("Analyze Emotion"):
         with torch.no_grad():
             outputs = model(**inputs)
         
-        probs = torch.sigmoid(outputs.logits).squeeze().numpy()
+        probs = torch.sigmoid(outputs.logits).squeeze().cpu().numpy()
         
-        # Display results
         st.subheader("Results:")
         found = False
         for i, p in enumerate(probs):
             if p > 0.3:
-                # Show a progress bar for each detected emotion
-                st.write(f"**{emotions[i].upper()}** ({round(p*100, 2)}%)")
+                st.write(f"**{emotions[i].upper()}** ({round(float(p)*100, 2)}%)")
                 st.progress(float(p))
                 found = True
         
