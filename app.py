@@ -17,12 +17,34 @@ st.set_page_config(page_title="Emotion AI Research Lab", page_icon="🎭", layou
 #     </style>
 #     """, unsafe_allow_stdio=True)
 # TO THIS:
+# st.markdown("""
+#     <style>
+#     .main { background-color: #f5f7f9; }
+#     .stMetric { background-color: #ffffff; padding: 15px; border-radius: 10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.05); }
+#     </style>
+#     """, unsafe_allow_html=True) # <--- "html" instead of "stdio"
+# Updated CSS to fix visibility
 st.markdown("""
     <style>
-    .main { background-color: #f5f7f9; }
-    .stMetric { background-color: #ffffff; padding: 15px; border-radius: 10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.05); }
+    .main { 
+        background-color: #f5f7f9; 
+    }
+    /* This targets the metric box and forces the text to be visible */
+    [data-testid="stMetricValue"] {
+        color: #1f77b4 !important; /* A nice professional blue */
+    }
+    [data-testid="stMetricLabel"] {
+        color: #31333F !important; /* Dark gray for the label */
+    }
+    .stMetric { 
+        background-color: #ffffff; 
+        padding: 15px; 
+        border-radius: 10px; 
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.05); 
+        border: 1px solid #e6e9ef;
+    }
     </style>
-    """, unsafe_allow_html=True) # <--- "html" instead of "stdio"
+    """, unsafe_allow_html=True)
 
 st.title("🎭 Multi-Label Emotion Detection Dashboard")
 st.markdown("### Research Project: Emotion Detection from Text Using NLP and Deep Learning")
