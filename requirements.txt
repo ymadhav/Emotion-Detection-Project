@@ -1,4 +1,5 @@
 streamlit
 torch
 transformers
-numpy
+pandas
+altair
