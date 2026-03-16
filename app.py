@@ -16,8 +16,8 @@ if not os.path.exists(SAVE_DIR):
 
 # 3. Use your Release links
 # Replace these with the actual "Copy Link Address" from your GitHub Release page
-MODEL_URL = "https://github.com/heera9721/Emotion-Detection-Project/releases/download/v1.0/model.safetensors"
-CONFIG_URL = "https://github.com/heera9721/Emotion-Detection-Project/releases/download/v1.0/config.json"
+MODEL_URL = "https://github.com/ymadhav/Emotion-Detection-Project/releases/download/v1.0/model.safetensors"
+CONFIG_URL = "https://github.com/ymadhav/Emotion-Detection-Project/releases/download/v1.0/config.json"
 
 @st.cache_resource
 def load_model():
