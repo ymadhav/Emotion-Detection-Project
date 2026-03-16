@@ -10,12 +10,19 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 st.set_page_config(page_title="Emotion AI Research Lab", page_icon="🎭", layout="wide")
 
 # Custom CSS to make it look professional
+# st.markdown("""
+#     <style>
+#     .main { background-color: #f5f7f9; }
+#     .stMetric { background-color: #ffffff; padding: 15px; border-radius: 10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.05); }
+#     </style>
+#     """, unsafe_allow_stdio=True)
+# TO THIS:
 st.markdown("""
     <style>
     .main { background-color: #f5f7f9; }
     .stMetric { background-color: #ffffff; padding: 15px; border-radius: 10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.05); }
     </style>
-    """, unsafe_allow_stdio=True)
+    """, unsafe_allow_html=True) # <--- "html" instead of "stdio"
 
 st.title("🎭 Multi-Label Emotion Detection Dashboard")
 st.markdown("### Research Project: Emotion Detection from Text Using NLP and Deep Learning")
