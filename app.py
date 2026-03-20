@@ -121,10 +121,14 @@ if mode == "Inference":
 elif mode == "Evaluation":
     st.subheader("📊 Dataset Emotion Distribution")
     try:
-        # Load and merge datasets
-        df1 = pd.read_csv("goemotions_1.csv")
-        df2 = pd.read_csv("goemotions_2.csv")
-        df3 = pd.read_csv("goemotions_3.csv")
+        # Directly load datasets from GitHub release URLs
+        url1 = "https://github.com/ymadhav/Emotion-Detection-Project/releases/download/v1.0/goemotions_1.csv"
+        url2 = "https://github.com/ymadhav/Emotion-Detection-Project/releases/download/v1.0/goemotions_2.csv"
+        url3 = "https://github.com/ymadhav/Emotion-Detection-Project/releases/download/v1.0/goemotions_3.csv"
+
+        df1 = pd.read_csv(url1)
+        df2 = pd.read_csv(url2)
+        df3 = pd.read_csv(url3)
         test_df = pd.concat([df1, df2, df3], ignore_index=True)
 
         emotion_counts = test_df['labels'].value_counts()
@@ -146,6 +150,9 @@ elif mode == "Evaluation":
             y_pred.append(pred_emotions)
 
         # Convert to binary indicator arrays
+        from sklearn.preprocessing import MultiLabelBinarizer
+        from sklearn.metrics import precision_score, recall_score, f1_score, classification_report
+
         mlb = MultiLabelBinarizer(classes=emotions)
         y_true_bin = mlb.fit_transform(y_true)
         y_pred_bin = mlb.transform(y_pred)
