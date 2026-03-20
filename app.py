@@ -4,9 +4,9 @@ import os
 import urllib.request
 import pandas as pd
 import altair as alt
-import seaborn as sns
 import matplotlib.pyplot as plt
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.preprocessing import MultiLabelBinarizer
+from sklearn.metrics import precision_score, recall_score, f1_score, classification_report
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 # 1. Page Configuration
@@ -117,29 +117,64 @@ if mode == "Inference":
             else:
                 st.info("Detected as **NEUTRAL** (no strong emotions above threshold).")
 
-# 6. Evaluation Mode
+# 6. Evaluation Mode (Multi-label)
 elif mode == "Evaluation":
     st.subheader("📊 Dataset Emotion Distribution")
     try:
-        df = pd.read_csv("goemtion1.csv")
-        emotion_counts = df['labels'].value_counts()
+        # Load and merge datasets
+        df1 = pd.read_csv("goemotions_1.csv")
+        df2 = pd.read_csv("goemotions_2.csv")
+        df3 = pd.read_csv("goemotions_3.csv")
+        test_df = pd.concat([df1, df2, df3], ignore_index=True)
+
+        emotion_counts = test_df['labels'].value_counts()
         st.bar_chart(emotion_counts)
+
+        # Prepare ground truth (assuming labels column has comma-separated emotions)
+        y_true = [lbl.split(",") for lbl in test_df["labels"].tolist()]
+
+        y_pred = []
+        threshold = st.sidebar.slider("Prediction Threshold", 0.0, 1.0, 0.3)
+
+        for text in test_df["text"]:
+            inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=64)
+            with torch.no_grad():
+                outputs = model(**inputs)
+            probs = torch.sigmoid(outputs.logits).squeeze().cpu().numpy()
+
+            pred_emotions = [emotions[i] for i, p in enumerate(probs) if p > threshold]
+            y_pred.append(pred_emotions)
+
+        # Convert to binary indicator arrays
+        mlb = MultiLabelBinarizer(classes=emotions)
+        y_true_bin = mlb.fit_transform(y_true)
+        y_pred_bin = mlb.transform(y_pred)
+
+        # Compute micro-averaged metrics
+        precision = precision_score(y_true_bin, y_pred_bin, average="micro")
+        recall = recall_score(y_true_bin, y_pred_bin, average="micro")
+        f1 = f1_score(y_true_bin, y_pred_bin, average="micro")
+
+        st.subheader("📈 Model Performance Metrics")
+        st.metric("Precision", f"{precision:.3f}")
+        st.metric("Recall", f"{recall:.3f}")
+        st.metric("F1 Score", f"{f1:.3f}")
+
+        # Per-class breakdown
+        report = classification_report(y_true_bin, y_pred_bin, target_names=emotions, output_dict=True)
+        report_df = pd.DataFrame(report).transpose()
+        st.dataframe(report_df)
+
+        # Per-class F1 bar chart
+        f1_scores = [report[e]["f1-score"] for e in emotions if e in report]
+        chart_df = pd.DataFrame({"Emotion": emotions, "F1": f1_scores})
+        chart = alt.Chart(chart_df).mark_bar().encode(
+            x=alt.X("F1:Q", title="F1 Score"),
+            y=alt.Y("Emotion:N", sort="-x"),
+            color=alt.Color("F1:Q", scale=alt.Scale(scheme="viridis"))
+        ).properties(height=400)
+        st.subheader("📊 Per-Class F1 Scores")
+        st.altair_chart(chart, use_container_width=True)
+
     except Exception as e:
-        st.warning(f"Dataset not found: {e}")
-
-    st.subheader("📈 Model Performance Metrics")
-    # Example dummy values — replace with actual test set labels/preds
-    y_true = ["joy","sadness","anger","joy","fear"]
-    y_pred = ["joy","sadness","anger","neutral","fear"]
-
-    report = classification_report(y_true, y_pred, target_names=list(set(y_true)), output_dict=True)
-    report_df = pd.DataFrame(report).transpose()
-    st.dataframe(report_df)
-
-    st.subheader("🔍 Confusion Matrix")
-    cm = confusion_matrix(y_true, y_pred, labels=list(set(y_true)))
-    fig, ax = plt.subplots(figsize=(6, 4))
-    sns.heatmap(cm, annot=True, cmap="Blues", xticklabels=list(set(y_true)), yticklabels=list(set(y_true)))
-    plt.xlabel("Predicted")
-    plt.ylabel("True")
-    st.pyplot(fig)
+        st.warning(f"Evaluation failed: {e}")
