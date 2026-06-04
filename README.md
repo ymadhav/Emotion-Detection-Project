@@ -1,8 +1,4 @@
-Here is the `README.md` code formatted to match the exact visual layout and structure of your screenshot.
 
-You can copy and paste this directly into your GitHub repository. I have used standard Markdown badges to replicate the tags at the top.
-
-```markdown
 # 🎭 Multi-Label Emotion Detection Dashboard
 
 ![Live Demo](https://img.shields.io/badge/Live_Demo-Streamlit-orange?style=flat-square) ![Python](https://img.shields.io/badge/Python-3.10-blue?style=flat-square) ![Powered by](https://img.shields.io/badge/Powered_by-DistilBERT-red?style=flat-square) ![UI](https://img.shields.io/badge/UI-Streamlit-red?style=flat-square)
